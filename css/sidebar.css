@@ -1,0 +1,292 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+::after,
+::before {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+li {
+    list-style: none;
+}
+
+h1 {
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    overflow: hidden;
+}
+
+.wrapper {
+    display: flex;
+    height: 100vh;
+}
+
+.main {
+    flex-grow: 1;
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    transition: all 0.35s ease-in-out;
+    background-color: rgb(57, 98, 136);
+    display: flex;
+    flex-direction: column;
+}
+
+.fixed-header {
+    background-color:  rgb(57, 98, 136);
+    z-index: 10;
+    padding: 1.5rem;
+}
+
+.fixed-header h1 {
+    margin: 0;
+    padding-bottom: 0.2rem;
+    color: white;
+}
+
+/* Remove the hr styles as we're using a border instead */
+
+.scrollable-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    background-color: rgb(248, 248, 255); /* /ghost white// */
+    border-radius: 5px;
+    border: 1px solid rgb(200, 200, 200); /* Light gray border */
+}
+
+
+/* ... (rest of the CSS remains the same) ... */
+
+#sidebar {
+    width: 70px;
+    min-width: 70px;
+    z-index: 1000;
+    transition: all .25s ease-in-out;
+    background-color: rgb(60, 102, 139);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    border-right: 1px solid rgba(255, 255, 255,0.2); /* Simple green line at the bottom */
+}
+
+#sidebar.expand {
+    width: 260px;
+    min-width: 260px;
+}
+
+.toggle-btn {
+    background-color: transparent;
+    cursor: pointer;
+    border: 0;
+    padding: 1rem 1.5rem;
+}
+
+.toggle-btn i {
+    font-size: 1.5rem;
+    color: #FFF;
+}
+
+.sidebar-logo {
+    margin: auto 0;
+}
+
+.sidebar-logo a {
+    color: #FFF;
+    font-size: 1.50rem;
+    font-weight: 600;
+}
+
+#sidebar:not(.expand) .sidebar-logo,
+#sidebar:not(.expand) a.sidebar-link span {
+    display: none;
+}
+
+.sidebar-nav {
+    padding: 2rem 0;
+    flex: 1 1 auto;
+}
+
+a.sidebar-link {
+    padding: .625rem 1.625rem;
+    color: #FFF;
+    display: block;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-link i {
+    font-size: 1.1rem;
+    margin-right: .75rem;
+}
+
+a.sidebar-link:hover {
+    background-color: rgba(255, 255, 255, .075);
+    border-left: 3px solid #f1f2f4;
+}
+
+.sidebar-item {
+    position: relative;
+}
+
+#sidebar:not(.expand) .sidebar-item .sidebar-dropdown {
+    position: absolute;
+    top: 0;
+    left: 70px;
+    background-color: #0e2238;
+    padding: 0;
+    min-width: 15rem;
+    display: none;
+}
+
+#sidebar:not(.expand) .sidebar-item:hover .has-dropdown+.sidebar-dropdown {
+    display: block;
+    max-height: 15em;
+    width: 100%;
+    opacity: 1;
+}
+
+#sidebar.expand .sidebar-link[data-bs-toggle="collapse"]::after {
+    border: solid;
+    border-width: 0 .075rem .075rem 0;
+    content: "";
+    display: inline-block;
+    padding: 2px;
+    position: absolute;
+    right: 1.5rem;
+    top: 1.4rem;
+    transform: rotate(-135deg);
+    transition: all .2s ease-out;
+}
+
+#sidebar.expand .sidebar-link[data-bs-toggle="collapse"].collapsed::after {
+    transform: rotate(45deg);
+    transition: all .2s ease-out;
+}
+.sidebar-link.active {
+    background-color: rgba(255, 255, 255, .075); /* Adjust as needed */
+    border-left: 3px solid #e67008; /* Matches hover effect */
+}
+/* Regular hover effect */
+a.sidebar-link:not(.active):hover {
+    background-color: rgba(255, 255, 255, .075);
+    border-left: 3px solid #f1f2f4;
+}
+
+/* Active link - no hover effect */
+.sidebar-link.active:hover {
+    background-color: rgba(255, 255, 255, .075); /* Same as active background */
+    border-left: 3px solid #375490; /* Same as active border */
+}
+
+
+
+
+/*chart diet_code*/
+
+#myChart, #barpie {
+    width: 100% !important; /* Allow canvas to take full width */
+    height: 400px; /* You can adjust this height as needed */
+}
+
+@media (max-width: 600px) {
+    #myChart, #barpie {
+        height: 300px; /* Smaller height for smaller screens */
+    }
+}
+
+
+
+/*table code_diet*/
+
+.chartsjs canvas {
+    max-width: 100%;  /* Ensure the canvas is responsive */
+    height: auto;     /* Maintain aspect ratio */
+}
+
+table {
+    width: auto;
+    margin: 50px auto;
+    border-collapse: collapse;
+    background-color: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+thead {
+    background-color: #D6E4F1;
+    text-align: left;
+    font-size: 16px;
+    color: #666;
+}
+
+th, td {
+    padding: 100px 100px 0px 0px  ;
+    text-align: left;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #F3F4F9;
+}
+
+tbody tr:hover {
+    background-color: #F5F5F5;
+}
+
+th {
+    font-weight: bold;
+}
+
+td {
+    font-size: 16px;
+}
+
+/*box*/
+.boxwrap {
+    color: rgba(0, 0, 0, 0.526);
+}
+
+.boxes {
+  border: 2px solid rgba(0, 0, 0, 1);
+    border-radius: 20px;
+    width: 350px;
+    height: 160px;
+    margin: 20px 20px 20px 20px;
+    display: flex;
+    justify-content: flex-start; /* Align to the start horizontally */
+}
+
+.dashdef {
+    font-size: 17px;
+    margin:0px 10px 10px 10px; /*s Remove top margin */
+}
+
+.icon {
+    font-size: 50px;
+    color: blue;
+    margin: 50px 30px 40px; /* Add space between icon and text */
+}
+
+.boxes .col-md-12 {
+    text-align: left;  /* Align the content to the left inside the box */
+}
+.num{
+    margin: 13px 40px 30px;
+    font-weight: bold;
+    font-size: 30px;
+}
+
+
