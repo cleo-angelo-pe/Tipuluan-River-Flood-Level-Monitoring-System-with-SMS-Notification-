@@ -1,0 +1,83 @@
+-- Database: `u534123466_sensors_db`
+
+-- Table structure for table `admin`
+CREATE TABLE `admin` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Table structure for table `distance_data`
+CREATE TABLE `distance_data` (
+  `id` int(11) NOT NULL,
+  `distance` int(4) NOT NULL,
+  `data_time` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table structure for table `evacuation`
+CREATE TABLE `evacuation` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `location` varchar(255) NOT NULL,
+  `capacity` int(11) NOT NULL,
+  `status` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table structure for table `message`
+CREATE TABLE `message` (
+  `id` int(11) NOT NULL,
+  `yellow` text DEFAULT NULL,
+  `orange` text DEFAULT NULL,
+  `prepare` text DEFAULT NULL,
+  `red` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Table structure for table `phonenumbers`
+CREATE TABLE `phonenumbers` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `phonenum` varchar(13) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `Status` varchar(255) NOT NULL,
+  `site` varchar(255) NOT NULL,
+  `date` date NOT NULL DEFAULT current_timestamp(),
+  `response_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table structure for table `smsmessage`
+CREATE TABLE `smsmessage` (
+  `id` int(11) NOT NULL,
+  `yellow` text NOT NULL,
+  `orange` text NOT NULL,
+  `prepare` text NOT NULL,
+  `red` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table structure for table `sms_logs`
+CREATE TABLE `sms_logs` (
+  `id` int(11) NOT NULL,
+  `recipient_name` varchar(255) NOT NULL,
+  `phone_number` varchar(20) NOT NULL,
+  `message` text NOT NULL,
+  `status` varchar(50) DEFAULT NULL,
+  `error_message` text DEFAULT NULL,
+  `sent_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Primary Keys and Auto Increments
+ALTER TABLE `admin` ADD PRIMARY KEY (`id`);
+ALTER TABLE `distance_data` ADD PRIMARY KEY (`id`);
+ALTER TABLE `evacuation` ADD PRIMARY KEY (`id`);
+ALTER TABLE `message` ADD PRIMARY KEY (`id`);
+ALTER TABLE `phonenumbers` ADD PRIMARY KEY (`id`);
+ALTER TABLE `smsmessage` ADD PRIMARY KEY (`id`);
+ALTER TABLE `sms_logs` ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `admin` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `distance_data` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `evacuation` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `message` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `phonenumbers` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `smsmessage` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `sms_logs` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
