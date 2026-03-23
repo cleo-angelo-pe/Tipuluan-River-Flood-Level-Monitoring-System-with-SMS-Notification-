@@ -1,0 +1,226 @@
+#include <NewPing.h>
+#include <Arduino.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
+
+// Replace with your network credentials
+const char* ssid = "CA_PE"; 
+const char* password = "int@103201.net";
+
+// Server URLs
+const char* SMSServerName = "https://tipuluan.site/php/sms_message.php";
+const char* configServerName = "https://tipuluan.site/php/config.php";
+const char* EmailServerName = "https://tipuluan.site/php/samplemail.php";
+
+// Pin definitions
+#define TRIG_PIN 5
+#define ECHO_PIN 18
+#define MAX_DISTANCE 400
+
+#define SENSOR_1 33
+#define SENSOR_2 32
+#define SENSOR_3 35
+#define SENSOR_4 34
+
+const int audioPin = 21;  // Pin for the speaker (ESP32 GPIO 25)
+NewPing sonar(TRIG_PIN, ECHO_PIN, MAX_DISTANCE);
+
+unsigned long previousUltrasonicTime = 0;
+const unsigned long ultrasonicInterval = 1000;
+unsigned long previousWaterLevelTime = 0;
+const unsigned long waterLevelInterval = 5000;
+int distance = 0;
+
+String lastWaterLevelMessage = "NONE";  // Track the last sent water level message
+int sendCounter = 0;  // Counter to limit the number of times the same level is sent
+bool soundPlayedForPrepare = false;  // Track if sound has been played for "prepare"
+
+void setup() {
+    Serial.begin(115200);
+
+    pinMode(SENSOR_1, INPUT);
+    pinMode(SENSOR_2, INPUT);
+    pinMode(SENSOR_3, INPUT);
+    pinMode(SENSOR_4, INPUT);
+
+    pinMode(audioPin, OUTPUT);  // Set up the audio pin as output
+
+    WiFi.begin(ssid, password); // Attempt WiFi connection (non-blocking)
+    Serial.println("Starting system...");
+}
+
+// Function to handle WiFi connection and reconnection
+void connectToWiFi() {
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("WiFi not connected. Attempting to reconnect...");
+        WiFi.disconnect();
+        WiFi.begin(ssid, password);
+
+        unsigned long startAttemptTime = millis();
+        const unsigned long attemptDuration = 5000; // Retry for 5 seconds
+
+        while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < attemptDuration) {
+            delay(500);
+            Serial.print(".");
+        }
+
+        if (WiFi.status() == WL_CONNECTED) {
+            Serial.println("\nWiFi connected!");
+        } else {
+            Serial.println("\nWiFi connection failed. Running offline.");
+        }
+    }
+}
+
+// Function to generate a tone manually
+void playTone(int pin, unsigned int frequency, unsigned long duration) {
+    unsigned long period = 1000000L / frequency;  // Period in microseconds
+    unsigned long cycles = duration * 1000L / period;
+
+    for (unsigned long i = 0; i < cycles; i++) {
+        digitalWrite(pin, HIGH);
+        delayMicroseconds(period / 2);
+        digitalWrite(pin, LOW);
+        delayMicroseconds(period / 2);
+    }
+}
+
+// Send email data
+void sendEmailData(String message) {
+    if (WiFi.status() == WL_CONNECTED) {
+        HTTPClient http;
+        http.begin(EmailServerName);
+        http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        String postData = "water_level=" + message;
+        int httpResponseCode = http.POST(postData);
+        
+        if (httpResponseCode > 0) {
+            String response = http.getString();
+            Serial.println("Email Response Code: " + String(httpResponseCode));
+            Serial.println("Email Response: " + response);
+        } else {
+            Serial.println("Email Error: " + String(httpResponseCode));
+        }
+        
+        http.end();
+    }
+}
+
+// Send SMS data
+void sendSMSData(String message) {
+    if (WiFi.status() == WL_CONNECTED) {
+        HTTPClient http;
+        http.begin(SMSServerName);
+        http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        String postData = "water_level=" + message;
+        int httpResponseCode = http.POST(postData);
+        
+        if (httpResponseCode > 0) {
+            String response = http.getString();
+            Serial.println("SMS Response Code: " + String(httpResponseCode));
+            Serial.println("SMS Response: " + response);
+        } else {
+            Serial.println("SMS Error: " + String(httpResponseCode));
+        }
+        
+        http.end();
+    }
+}
+
+// Send distance data
+void sendDistanceData(int distanceValue) {
+    if (WiFi.status() == WL_CONNECTED && distanceValue != 0) {
+        HTTPClient http;
+        http.begin(configServerName);
+        http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        String postData = "distance=" + String(distanceValue);
+        int httpResponseCode = http.POST(postData);
+
+        if (httpResponseCode > 0) {
+            String response = http.getString();
+            Serial.println("Distance Response Code: " + String(httpResponseCode));
+            Serial.println("Distance Response: " + response);
+        } else {
+            Serial.println("Distance Error: " + String(httpResponseCode));
+        }
+
+        http.end();
+    }
+}
+
+// Main loop function
+void loop() {
+    connectToWiFi();  // Ensure WiFi is connected in the background
+    
+    unsigned long currentMillis = millis();
+
+    // Ultrasonic sensor reading
+    if (currentMillis - previousUltrasonicTime >= ultrasonicInterval) {
+        previousUltrasonicTime = currentMillis;
+        distance = sonar.ping_cm();
+        
+        if (distance > 0) {  // Only send valid readings
+            Serial.print("Ultrasonic_distance: ");
+            Serial.println(distance);
+            sendDistanceData(distance);  // Send to server only if distance is valid
+        } else {  // If no valid distance reading
+            Serial.println("Ultrasonic_distance: none");
+        }
+    }
+
+    // Water level sensor reading
+    if (currentMillis - previousWaterLevelTime >= waterLevelInterval) {
+        previousWaterLevelTime = currentMillis;
+
+        int sensorValues[] = {
+            analogRead(SENSOR_1),
+            analogRead(SENSOR_2),
+            analogRead(SENSOR_3),
+            analogRead(SENSOR_4)
+        };
+
+        float distances[] = {50.0, 33.0, 29.0, 18.0};
+        float lowerBounds[] = {39.0, 30.0, 20.0, 10.0};  
+        
+        int threshold = 100;
+        String waterLevelMessage = "NONE";
+
+        // Check water levels from highest to lowest to ensure most critical level is reported
+        if (sensorValues[3] > threshold && distance <= distances[3] && distance >= lowerBounds[3]) {
+            waterLevelMessage = "red";
+        } 
+        else if (sensorValues[2] > threshold && distance <= distances[2] && distance >= lowerBounds[2]) {
+            waterLevelMessage = "prepare";
+
+            if (!soundPlayedForPrepare) {
+                playTone(audioPin, 1000, 5000);  // Play 1000 Hz tone for 5 seconds
+                soundPlayedForPrepare = true;  // Mark sound as played for "prepare"
+            }
+        } 
+        else if (sensorValues[1] > threshold && distance <= distances[1] && distance >= lowerBounds[1]) {
+            waterLevelMessage = "orange";
+        } 
+        else if (sensorValues[0] > threshold && distance <= distances[0] && distance >= lowerBounds[0]) {
+            waterLevelMessage = "yellow";
+        }
+
+        
+        Serial.println("Water_level: " + waterLevelMessage);
+
+        // Logic to send messages only if the water level changes
+        if (waterLevelMessage != lastWaterLevelMessage) {
+            lastWaterLevelMessage = waterLevelMessage;  // Update the last sent message
+            sendCounter = 0;  // Reset the counter when water level changes
+            soundPlayedForPrepare = false;  // Reset sound flag for new level
+        }
+
+        if (waterLevelMessage != "NONE" && sendCounter == 0) {
+            sendEmailData(waterLevelMessage);
+            sendSMSData(waterLevelMessage);
+            sendCounter++;  // Increment the counter after sending messages
+        }
+    }
+}
